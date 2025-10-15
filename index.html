@@ -1,132 +1,304 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Workout Plan Generator</title>
-<style>
-body { background:#071024; color:#e6eef6; font-family: sans-serif; padding:20px; }
-h1,h2 { color:#06b6d4; }
-label { display:block; margin-top:10px; font-size:14px; }
-input, select, button { padding:8px; margin-top:4px; border-radius:6px; border:none; font-size:14px; }
-button { background:#06b6d4; color:#04202a; cursor:pointer; }
-button.secondary { background:transparent; color:#06b6d4; border:1px solid #06b6d4; }
-#output { margin-top:20px; }
-.plan-week { background: rgba(255,255,255,0.05); padding:10px; margin-bottom:10px; border-radius:8px; }
-.workout { margin:5px 0; }
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Auto Workout Plan Builder</title>
+  <style>
+    :root{
+      --bg:#0f1724; --card:#0b1220; --accent:#06b6d4; --muted:#94a3b8;
+      --glass: rgba(255,255,255,0.03);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+    body{
+      margin:0; background: linear-gradient(180deg,#071024 0%, #071827 60%); color:#e6eef6;
+      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+    }
+    .wrap{max-width:1000px;margin:28px auto;padding:20px;}
+    header{display:flex;align-items:center;gap:16px;}
+    h1{margin:0;font-size:20px;letter-spacing:-0.2px}
+    .sub{color:var(--muted);font-size:13px;margin-top:4px}
+    .card{background:var(--card);border-radius:12px;padding:18px;margin-top:18px;box-shadow:0 6px 30px rgba(2,6,23,0.6);}
+    form{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+    label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+    input[type="text"], input[type="number"], select{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:var(--glass);color:inherit}
+    .full{grid-column:1/-1}
+    .row{display:flex;gap:8px}
+    button{background:var(--accent);border:none;color:#04202a;padding:10px 14px;border-radius:10px;font-weight:600;cursor:pointer}
+    button.secondary{background:transparent;color:var(--accent);border:1px solid rgba(6,182,212,0.12)}
+    #output{margin-top:18px}
+    .plan-week{background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);padding:12px;border-radius:10px;margin-bottom:12px}
+    .workout{border-radius:8px;padding:10px;background:rgba(255,255,255,0.01);margin:8px 0}
+    small{color:var(--muted)}
+    .chips{display:flex;gap:8px;flex-wrap:wrap}
+    .chip{background:#061226;padding:6px 8px;border-radius:999px;font-size:12px;color:var(--muted)}
+    footer{margin-top:18px;color:var(--muted);font-size:13px}
+    @media (max-width:800px){ form{grid-template-columns:1fr} .wrap{padding:12px} header{flex-direction:column;align-items:flex-start}}
+    .flex-between{display:flex;justify-content:space-between;align-items:center;gap:12px}
+    .meta{font-size:13px;color:var(--muted)}
+  </style>
 </head>
 <body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>Auto Workout Plan Builder</h1>
+        <div class="sub">Enter a few details and get a 4-week progressive workout plan — client-side, private, and instant.</div>
+      </div>
+      <div style="margin-left:auto;text-align:right">
+        <div class="meta">Simple • No account • Works offline</div>
+      </div>
+    </header>
 
-<h1>Workout Plan Generator</h1>
-<p>Enter your details and generate a 4-week workout plan.</p>
+    <section class="card" aria-labelledby="buildform">
+      <h2 id="buildform" style="font-size:16px;margin:0 0 12px 0">Tell me about you</h2>
+      <form id="inputForm">
+        <div>
+          <label>Age</label>
+          <input type="number" id="age" min="10" max="100" value="25" required>
+        </div>
+        <div>
+          <label>Sex (optional)</label>
+          <select id="sex"><option value="">Prefer not to say</option><option>Male</option><option>Female</option><option>Other</option></select>
+        </div>
 
-<form id="inputForm">
-  <label>Age <input type="number" id="age" value="25" min="10" max="100"></label>
-  <label>Height <input type="number" id="height" value="175"> <select id="heightUnit"><option value="cm">cm</option><option value="in">inches</option></select></label>
-  <label>Weight <input type="number" id="weight" value="70"> <select id="weightUnit"><option value="kg">kg</option><option value="lb">lb</option></select></label>
-  <label>Fitness Level <select id="level">
-    <option value="beginner">Beginner</option>
-    <option value="intermediate" selected>Intermediate</option>
-    <option value="advanced">Advanced</option>
-  </select></label>
-  <label>Goal <select id="goal">
-    <option value="build">Build Muscle</option>
-    <option value="lose">Lose Fat</option>
-    <option value="strength">Strength</option>
-    <option value="endurance">Endurance</option>
-    <option value="mobility">Mobility</option>
-  </select></label>
-  <label>Equipment <select id="equipment">
-    <option value="none">No equipment</option>
-    <option value="dumbbells">Dumbbells</option>
-    <option value="barbell">Barbell</option>
-    <option value="gym">Full gym</option>
-  </select></label>
-  <button type="submit">Generate Plan</button>
-</form>
+        <div>
+          <label>Height</label>
+          <div class="row">
+            <input type="number" id="height" placeholder="e.g. 175" value="175" required>
+            <select id="heightUnit" style="width:120px">
+              <option value="cm">cm</option>
+              <option value="in">inches</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label>Weight</label>
+          <div class="row">
+            <input type="number" id="weight" placeholder="e.g. 70" value="70" required>
+            <select id="weightUnit" style="width:120px"><option value="kg">kg</option><option value="lb">lb</option></select>
+          </div>
+        </div>
 
-<div id="output"></div>
+        <div>
+          <label>Fitness level</label>
+          <select id="level">
+            <option value="beginner">Beginner (new / 0-6 months)</option>
+            <option value="intermediate" selected>Intermediate (6-24 months)</option>
+            <option value="advanced">Advanced (2+ years)</option>
+          </select>
+        </div>
 
-<script>
-// Exercise DB (simplified)
-const EXERCISES = {
-  body: { push:["Push-ups","Incline push-ups"], pull:["Inverted row","Towel row"], legs:["Squats","Lunges"], core:["Plank","Dead bug"] },
-  dumbbells: { push:["Dumbbell bench press"], pull:["One-arm dumbbell row"], legs:["Goblet squat"], core:["Weighted plank"] },
-  barbell: { push:["Barbell bench press"], pull:["Barbell row","Deadlift"], legs:["Back squat"], core:["Hanging knee raise"] },
-  gym: { push:["Machine chest press"], pull:["Lat pulldown"], legs:["Leg press"], core:["Cable crunch"] }
-};
+        <div>
+          <label>Primary goal</label>
+          <select id="goal">
+            <option value="build">Build muscle (hypertrophy)</option>
+            <option value="lose">Lose fat / body recomposition</option>
+            <option value="strength">Get stronger (strength)</option>
+            <option value="endurance">Endurance / conditioning</option>
+            <option value="mobility">Mobility / flexibility</option>
+          </select>
+        </div>
 
-const GOAL_CONFIG = {
-  build:{rep:"8-12", sets:3, rest:90, cardio:"2x20-30min low-mod"},
-  lose:{rep:"10-15", sets:3, rest:60, cardio:"3x25-40min incl HIIT"},
-  strength:{rep:"3-6", sets:4, rest:180, cardio:"2x20-30 low"},
-  endurance:{rep:"12-20", sets:3, rest:45, cardio:"3-4 steady-state"},
-  mobility:{rep:"8-15", sets:2, rest:30, cardio:"mobility/walk 20-30min"}
-};
+        <div class="full">
+          <label>Available equipment (choose the best match)</label>
+          <select id="equipment">
+            <option value="none">No equipment — bodyweight only</option>
+            <option value="dumbbells">Dumbbells (light–heavy)</option>
+            <option value="barbell">Barbell + plates</option>
+            <option value="gym">Full gym (machines + cables + barbells)</option>
+          </select>
+        </div>
 
-function pick(arr,n=1){ return arr.slice(0,n); }
-function buildWorkout(type,equip,goal){
-  const db = (equip==="none")?EXERCISES.body:(equip==="dumbbells")?{...EXERCISES.body,...EXERCISES.dumbbells}:(equip==="barbell")?{...EXERCISES.body,...EXERCISES.barbell}:{...EXERCISES.body,...EXERCISES.dumbbells,...EXERCISES.barbell,...EXERCISES.gym};
-  const conf = GOAL_CONFIG[goal];
-  let chosen=[];
-  if(type==="full"){ chosen=[...pick(db.push,2),...pick(db.pull,2),...pick(db.legs,1)]; }
-  else chosen=pick(db[type],2);
-  return {title:type==="full"?"Full Body Workout":type[0].toUpperCase()+type.slice(1)+" Workout", exercises:chosen.map(e=>({name:e, sets:conf.sets, reps:conf.rep, rest:conf.rest+"s"})), cardio:conf.cardio};
-}
+        <div class="full" style="display:flex;gap:8px;align-items:center;margin-top:8px">
+          <button type="submit">Generate plan</button>
+          <button type="button" id="random" class="secondary">Random sample</button>
+          <div style="margin-left:auto;color:var(--muted);font-size:13px">4-week plan • Weekly progression</div>
+        </div>
+      </form>
 
-function generatePlan(data){
-  const {age, level, goal, equipment} = data;
-  let sessions=3;
-  if(goal==="build"||goal==="lose") sessions=(level==="beginner")?3:4;
-  else if(goal==="strength") sessions=(level==="advanced")?4:3;
-  else if(goal==="endurance") sessions=4;
-  else if(goal==="mobility") sessions=3;
-  const weeklyStructure=sessions<=2?["full","full"]:sessions===3?["push","pull","legs"]:["push","pull","legs","full"];
-  const plan={weeks:[]};
-  for(let w=1;w<=4;w++){
-    const week={week:w, days:[]};
-    weeklyStructure.forEach(type=>week.days.push({workout:buildWorkout(type,equipment,goal)}));
-    plan.weeks.push(week);
-  }
-  return plan;
-}
+      <div id="output"></div>
+    </section>
 
-function renderPlan(plan){
-  const out=document.getElementById("output");
-  out.innerHTML="";
-  plan.weeks.forEach(w=>{
-    const div=document.createElement("div");
-    div.className="plan-week";
-    div.innerHTML=`<h3>Week ${w.week}</h3>`;
-    w.days.forEach((d,i)=>{
-      let html=`<div class="workout"><strong>Day ${i+1}: ${d.workout.title}</strong><ul>`;
-      d.workout.exercises.forEach(e=>html+=`<li>${e.name} — ${e.sets} sets x ${e.reps} reps (Rest ${e.rest})</li>`);
-      html+=`</ul><small>Cardio: ${d.workout.cardio}</small></div>`;
-      div.innerHTML+=html;
-    });
-    out.appendChild(div);
-  });
-}
+    <footer>
+      Tip: copy the page to your device to keep it private. This generator gives structured plans but is not medical advice. If you have health issues, consult a professional.
+    </footer>
+  </div>
 
-// --- FORM HANDLER ---
-const form=document.getElementById("inputForm");
-form.addEventListener("submit",function(e){
-  e.preventDefault(); // PREVENT PAGE RELOAD
-  const data={
-    age:parseInt(document.getElementById("age").value),
-    height:parseInt(document.getElementById("height").value),
-    weight:parseInt(document.getElementById("weight").value),
-    heightUnit:document.getElementById("heightUnit").value,
-    weightUnit:document.getElementById("weightUnit").value,
-    level:document.getElementById("level").value,
-    goal:document.getElementById("goal").value,
-    equipment:document.getElementById("equipment").value
+  <script>
+  // --- Exercise database (simple, equipment-aware) ---
+  const EXERCISES = {
+    body: {
+      push: [
+        {name:"Push-ups", notes:"full chest/shoulder/triceps", equipment:"none"},
+        {name:"Incline push-ups", notes:"easier", equipment:"none"},
+        {name:"Pike push-ups", notes:"targets shoulders", equipment:"none"}
+      ],
+      pull: [
+        {name:"Inverted row (table)", notes:"use a sturdy surface", equipment:"none"},
+        {name:"Doorway row", notes:"careful with grip", equipment:"none"},
+        {name:"Towel row", notes:"use a towel over a pole", equipment:"none"}
+      ],
+      legs: [
+        {name:"Squats", notes:"bodyweight squat", equipment:"none"},
+        {name:"Lunges", notes:"stationary or walking", equipment:"none"},
+        {name:"Glute bridge", notes:"hip thrust alternative", equipment:"none"}
+      ],
+      core: [
+        {name:"Plank", notes:"hold tight core", equipment:"none"},
+        {name:"Dead bug", notes:"core control", equipment:"none"},
+        {name:"Hollow hold", notes:"advanced core", equipment:"none"}
+      ]
+    },
+    dumbbells: {
+      push: [
+        {name:"Dumbbell bench press", equipment:"dumbbells"},
+        {name:"Dumbbell shoulder press", equipment:"dumbbells"},
+        {name:"Dumbbell chest fly", equipment:"dumbbells"}
+      ],
+      pull: [
+        {name:"One-arm dumbbell row", equipment:"dumbbells"},
+        {name:"Dumbbell reverse fly", equipment:"dumbbells"},
+        {name:"Dumbbell shrugs", equipment:"dumbbells"}
+      ],
+      legs: [
+        {name:"Goblet squat", equipment:"dumbbells"},
+        {name:"Dumbbell Romanian deadlift", equipment:"dumbbells"},
+        {name:"Dumbbell step-up", equipment:"dumbbells"}
+      ],
+      core: [
+        {name:"Weighted plank (plate/dumbbell)", equipment:"dumbbells"},
+        {name:"Russian twist (dumbbell)", equipment:"dumbbells"}
+      ]
+    },
+    barbell: {
+      push: [
+        {name:"Barbell bench press", equipment:"barbell"},
+        {name:"Overhead press", equipment:"barbell"}
+      ],
+      pull: [
+        {name:"Barbell row", equipment:"barbell"},
+        {name:"Deadlift", equipment:"barbell"}
+      ],
+      legs: [
+        {name:"Back squat", equipment:"barbell"},
+        {name:"Front squat", equipment:"barbell"}
+      ],
+      core: [
+        {name:"Hanging knee raise", equipment:"barbell"}
+      ]
+    },
+    gym: {
+      push: [
+        {name:"Machine chest press", equipment:"gym"},
+        {name:"Cable lateral raise", equipment:"gym"}
+      ],
+      pull: [
+        {name:"Lat pulldown", equipment:"gym"},
+        {name:"Seated row", equipment:"gym"}
+      ],
+      legs: [
+        {name:"Leg press", equipment:"gym"},
+        {name:"Leg curl", equipment:"gym"}
+      ],
+      core: [
+        {name:"Cable crunch", equipment:"gym"}
+      ]
+    }
   };
-  const plan=generatePlan(data);
-  renderPlan(plan);
-});
-</script>
 
-</body>
-</html>
+  // helper: pick N random distinct items from array, or rotate if fewer
+  function pick(arr, n=1){
+    if(!arr || arr.length===0) return [];
+    const res = [];
+    for(let i=0;i<n;i++){
+      res.push(arr[i % arr.length]);
+    }
+    return res;
+  }
+
+  function unitToMetric(height, hUnit, weight, wUnit){
+    let hCm = height;
+    if(hUnit === 'in'){ hCm = height * 2.54; }
+    let kg = weight;
+    if(wUnit === 'lb'){ kg = weight * 0.45359237; }
+    return {heightCm: Math.round(hCm), weightKg: Math.round(kg*10)/10};
+  }
+
+  // Determine frequency & focus based on goal + level
+  function decideFrequency(goal, level, age){
+    // baseline weekly sessions
+    let sessions = 3;
+    if(goal === 'build') sessions = (level === 'beginner')?3:4;
+    if(goal === 'lose') sessions = (level === 'beginner')?3:4;
+    if(goal === 'strength') sessions = (level === 'advanced')?4:3;
+    if(goal === 'endurance') sessions = 4;
+    if(goal === 'mobility') sessions = 3;
+    // adjust for older ages (conservative)
+    if(age >= 60) sessions = Math.max(2, sessions-1);
+    return sessions;
+  }
+
+  // Map goal to rep ranges and cardio
+  const GOAL_CONFIG = {
+    build: {repRange:"8-12", sets:3, rest:90, cardio:"2 x 20-30 min low-moderate"},
+    lose: {repRange:"10-15", sets:3, rest:60, cardio:"3 x 25-40 min mix incl. HIIT once/week"},
+    strength: {repRange:"3-6", sets:4, rest:180, cardio:"2 x 20-30 low"},
+    endurance: {repRange:"12-20", sets:3, rest:45, cardio:"3-4 sessions longer steady-state"},
+    mobility: {repRange:"8-15", sets:2, rest:30, cardio:"active mobility, walking 20-30 min"}
+  };
+
+  // Build a single workout using equipment & focus
+  function buildWorkout(type, equipment, goal){
+    // type: push/pull/legs/core or full
+    const db = (equipment === 'none') ? EXERCISES.body
+             : (equipment === 'dumbbells') ? {...EXERCISES.body, ...EXERCISES.dumbbells}
+             : (equipment === 'barbell') ? {...EXERCISES.body, ...EXERCISES.barbell}
+             : {...EXERCISES.body, ...EXERCISES.gym, ...EXERCISES.dumbbells, ...EXERCISES.barbell};
+
+    const reps = GOAL_CONFIG[goal].repRange;
+    const sets = GOAL_CONFIG[goal].sets;
+    const rest = GOAL_CONFIG[goal].rest;
+
+    let pickCount = 3;
+    if(type === 'core') pickCount = 2;
+    if(type === 'full') pickCount = 5;
+
+    // choose categories depending on workout type
+    let chosen = [];
+    if(type === 'push' || type === 'pull' || type === 'legs' || type === 'core'){
+      const pool = db[type] || [];
+      chosen = pick(pool, pickCount);
+    } else if(type === 'full'){
+      chosen = [...pick(db.push,2), ...pick(db.pull,2), ...pick(db.legs,1)];
+    } else {
+      chosen = pick(db.push,2);
+    }
+
+    return {
+      title: (type === 'full')? 'Full body workout' : (type[0].toUpperCase()+type.slice(1)) + ' workout',
+      exercises: chosen.map(e => ({name:e.name, notes:e.notes || "", sets, reps, rest: rest + "s"})),
+      warmup: "5-8 min dynamic warmup (leg swings, arm circles, bodyweight squats, hip openers)",
+      cooldown: "5-8 min light stretch and deep breathing",
+      cardio: GOAL_CONFIG[goal].cardio
+    };
+  }
+
+  // Create 4-week plan
+  function generatePlan(data){
+    const {age, heightCm, weightKg, equipment, level, goal} = data;
+    const sessionsPerWeek = decideFrequency(goal, level, age);
+
+    // choose split based on sessions
+    let weeklyStructure = [];
+    if(sessionsPerWeek <= 2){
+      weeklyStructure = ["full","full"];
+    } else if(sessionsPerWeek === 3){
+      weeklyStructure = ["push","pull","legs"];
+    } else if(sessionsPerWeek === 4){
+      weeklyStructure = ["push","pull","legs","full"];
+    } else { // 5+
+      weeklyStructure = ["push","pull","legs","push","pull"].slice(0,sessionsPerWeek);
+    }
+
+    const plan = {meta:{age,heightCm,weightKg, equipment,
