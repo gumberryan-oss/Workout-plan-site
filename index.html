@@ -1,25 +1,132 @@
-font-weight:600;cursor:pointer}
-    button.secondary{background:transparent;color:var(--accent);border:1px solid rgba(6,182,212,0.12)}
-    #output{margin-top:18px}
-    .plan-week{background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);padding:12px;border-radius:10px;margin-bottom:12px}
-    .workout{border-radius:8px;padding:10px;background:rgba(255,255,255,0.01);margin:8px 0}
-    small{color:var(--muted)}
-    .chips{display:flex;gap:8px;flex-wrap:wrap}
-    .chip{background:#061226;padding:6px 8px;border-radius:999px;font-size:12px;color:var(--muted)}
-    footer{margin-top:18px;color:
-          <label>Height</label>
-          <div class="row">
-            <input type="number" id="height" placeholder="e.g. 175" value="175" required>
-            <select id="heightUnit" style="width:120px">
-              <option value="cm">cm</option>
-              <option value="in">inches</option>
-            </select>
-          </div>
-        </div>
-        <div>
-          <label>Weight</label>
-          <div class="row">
-            <input type="number" id="weight" placeholder="e.g. 70" value="70" required>
-            <select id="weightUnit" style="width:120px"><option value="kg">kg</option><option value="lb">lb</option></select>
-          </div>
-        </
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Workout Plan Generator</title>
+<style>
+body { background:#071024; color:#e6eef6; font-family: sans-serif; padding:20px; }
+h1,h2 { color:#06b6d4; }
+label { display:block; margin-top:10px; font-size:14px; }
+input, select, button { padding:8px; margin-top:4px; border-radius:6px; border:none; font-size:14px; }
+button { background:#06b6d4; color:#04202a; cursor:pointer; }
+button.secondary { background:transparent; color:#06b6d4; border:1px solid #06b6d4; }
+#output { margin-top:20px; }
+.plan-week { background: rgba(255,255,255,0.05); padding:10px; margin-bottom:10px; border-radius:8px; }
+.workout { margin:5px 0; }
+</style>
+</head>
+<body>
+
+<h1>Workout Plan Generator</h1>
+<p>Enter your details and generate a 4-week workout plan.</p>
+
+<form id="inputForm">
+  <label>Age <input type="number" id="age" value="25" min="10" max="100"></label>
+  <label>Height <input type="number" id="height" value="175"> <select id="heightUnit"><option value="cm">cm</option><option value="in">inches</option></select></label>
+  <label>Weight <input type="number" id="weight" value="70"> <select id="weightUnit"><option value="kg">kg</option><option value="lb">lb</option></select></label>
+  <label>Fitness Level <select id="level">
+    <option value="beginner">Beginner</option>
+    <option value="intermediate" selected>Intermediate</option>
+    <option value="advanced">Advanced</option>
+  </select></label>
+  <label>Goal <select id="goal">
+    <option value="build">Build Muscle</option>
+    <option value="lose">Lose Fat</option>
+    <option value="strength">Strength</option>
+    <option value="endurance">Endurance</option>
+    <option value="mobility">Mobility</option>
+  </select></label>
+  <label>Equipment <select id="equipment">
+    <option value="none">No equipment</option>
+    <option value="dumbbells">Dumbbells</option>
+    <option value="barbell">Barbell</option>
+    <option value="gym">Full gym</option>
+  </select></label>
+  <button type="submit">Generate Plan</button>
+</form>
+
+<div id="output"></div>
+
+<script>
+// Exercise DB (simplified)
+const EXERCISES = {
+  body: { push:["Push-ups","Incline push-ups"], pull:["Inverted row","Towel row"], legs:["Squats","Lunges"], core:["Plank","Dead bug"] },
+  dumbbells: { push:["Dumbbell bench press"], pull:["One-arm dumbbell row"], legs:["Goblet squat"], core:["Weighted plank"] },
+  barbell: { push:["Barbell bench press"], pull:["Barbell row","Deadlift"], legs:["Back squat"], core:["Hanging knee raise"] },
+  gym: { push:["Machine chest press"], pull:["Lat pulldown"], legs:["Leg press"], core:["Cable crunch"] }
+};
+
+const GOAL_CONFIG = {
+  build:{rep:"8-12", sets:3, rest:90, cardio:"2x20-30min low-mod"},
+  lose:{rep:"10-15", sets:3, rest:60, cardio:"3x25-40min incl HIIT"},
+  strength:{rep:"3-6", sets:4, rest:180, cardio:"2x20-30 low"},
+  endurance:{rep:"12-20", sets:3, rest:45, cardio:"3-4 steady-state"},
+  mobility:{rep:"8-15", sets:2, rest:30, cardio:"mobility/walk 20-30min"}
+};
+
+function pick(arr,n=1){ return arr.slice(0,n); }
+function buildWorkout(type,equip,goal){
+  const db = (equip==="none")?EXERCISES.body:(equip==="dumbbells")?{...EXERCISES.body,...EXERCISES.dumbbells}:(equip==="barbell")?{...EXERCISES.body,...EXERCISES.barbell}:{...EXERCISES.body,...EXERCISES.dumbbells,...EXERCISES.barbell,...EXERCISES.gym};
+  const conf = GOAL_CONFIG[goal];
+  let chosen=[];
+  if(type==="full"){ chosen=[...pick(db.push,2),...pick(db.pull,2),...pick(db.legs,1)]; }
+  else chosen=pick(db[type],2);
+  return {title:type==="full"?"Full Body Workout":type[0].toUpperCase()+type.slice(1)+" Workout", exercises:chosen.map(e=>({name:e, sets:conf.sets, reps:conf.rep, rest:conf.rest+"s"})), cardio:conf.cardio};
+}
+
+function generatePlan(data){
+  const {age, level, goal, equipment} = data;
+  let sessions=3;
+  if(goal==="build"||goal==="lose") sessions=(level==="beginner")?3:4;
+  else if(goal==="strength") sessions=(level==="advanced")?4:3;
+  else if(goal==="endurance") sessions=4;
+  else if(goal==="mobility") sessions=3;
+  const weeklyStructure=sessions<=2?["full","full"]:sessions===3?["push","pull","legs"]:["push","pull","legs","full"];
+  const plan={weeks:[]};
+  for(let w=1;w<=4;w++){
+    const week={week:w, days:[]};
+    weeklyStructure.forEach(type=>week.days.push({workout:buildWorkout(type,equipment,goal)}));
+    plan.weeks.push(week);
+  }
+  return plan;
+}
+
+function renderPlan(plan){
+  const out=document.getElementById("output");
+  out.innerHTML="";
+  plan.weeks.forEach(w=>{
+    const div=document.createElement("div");
+    div.className="plan-week";
+    div.innerHTML=`<h3>Week ${w.week}</h3>`;
+    w.days.forEach((d,i)=>{
+      let html=`<div class="workout"><strong>Day ${i+1}: ${d.workout.title}</strong><ul>`;
+      d.workout.exercises.forEach(e=>html+=`<li>${e.name} — ${e.sets} sets x ${e.reps} reps (Rest ${e.rest})</li>`);
+      html+=`</ul><small>Cardio: ${d.workout.cardio}</small></div>`;
+      div.innerHTML+=html;
+    });
+    out.appendChild(div);
+  });
+}
+
+// --- FORM HANDLER ---
+const form=document.getElementById("inputForm");
+form.addEventListener("submit",function(e){
+  e.preventDefault(); // PREVENT PAGE RELOAD
+  const data={
+    age:parseInt(document.getElementById("age").value),
+    height:parseInt(document.getElementById("height").value),
+    weight:parseInt(document.getElementById("weight").value),
+    heightUnit:document.getElementById("heightUnit").value,
+    weightUnit:document.getElementById("weightUnit").value,
+    level:document.getElementById("level").value,
+    goal:document.getElementById("goal").value,
+    equipment:document.getElementById("equipment").value
+  };
+  const plan=generatePlan(data);
+  renderPlan(plan);
+});
+</script>
+
+</body>
+</html>
